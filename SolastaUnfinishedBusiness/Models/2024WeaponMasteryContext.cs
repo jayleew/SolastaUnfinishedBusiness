@@ -21,6 +21,7 @@ using static RuleDefinitions;
 using static SolastaUnfinishedBusiness.Api.DatabaseHelper.CharacterClassDefinitions;
 using static SolastaUnfinishedBusiness.Api.DatabaseHelper.FeatureDefinitionActionAffinitys;
 using static SolastaUnfinishedBusiness.Api.DatabaseHelper;
+using UE = UnityEngine;
 
 namespace SolastaUnfinishedBusiness.Models;
 
@@ -951,7 +952,6 @@ internal static partial class Tabletop2024Context
                     AttributeDefinitions.TagEffect, ConditionWeaponMasteryCleave.Name, out var activeCondition))
             {
                 __instance.actionModifier.FailureFlags.Add(Gui.Localize("Failure/&CannotAttackTarget"));
-
                 return false;
             }
 
@@ -961,20 +961,21 @@ internal static partial class Tabletop2024Context
             if (!attacker.IsWithinRange(target, attackMode.reachRange) ||
                     target == firstTarget)
             {
-                if (target != firstTarget 
-                    && Main.Settings.UseWeaponMasterySystemAlternateProperties 
+                if (target != firstTarget
+                    && Main.Settings.UseWeaponMasterySystemAlternateProperties
                     && (attackMode.Thrown || attackMode.Ranged)) {  } //do nothing, using alternate weapon properties
                 else //then the attack is melee or reached, or alternate masteries is off
+                {
                     __instance.actionModifier.FailureFlags.Add(Gui.Localize("Failure/&CannotAttackTarget"));
 
-                return false;
+                    return false;
+                }
             }
 
-            if (firstTarget.IsWithinRange(target, 1))
+            if (firstTarget.IsWithinRange(target, (attackMode.Thrown || attackMode.Ranged) ? 3 : 1))
             {
                 return true;
-            }
-
+            };
             __instance.actionModifier.FailureFlags.Add("Failure/&SecondTargetNotWithinRange");
 
             return false;

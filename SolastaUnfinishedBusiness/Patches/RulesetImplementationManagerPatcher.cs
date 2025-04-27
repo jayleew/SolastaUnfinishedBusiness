@@ -69,6 +69,7 @@ public static class RulesetImplementationManagerPatcher
             List<int> rolledValues,
             bool canRerollDice)
         {
+            //crunchycrits
             var dieType = useVersatileDamage ? damageForm.VersatileDieType : damageForm.DieType;
             var diceMaxValue = DiceMaxValue[(int)damageForm.dieType];
 
