@@ -26,6 +26,9 @@ using static SolastaUnfinishedBusiness.Api.DatabaseHelper.FeatureDefinitionPower
 using static SolastaUnfinishedBusiness.Api.DatabaseHelper.FeatureDefinitionSenses;
 using static SolastaUnfinishedBusiness.Api.DatabaseHelper.InvocationDefinitions;
 using static SolastaUnfinishedBusiness.Api.DatabaseHelper.SpellDefinitions;
+using Mono.CSharp;
+using System.Text.RegularExpressions;
+using System.Threading;
 
 namespace SolastaUnfinishedBusiness.Models;
 
@@ -47,7 +50,8 @@ internal static class LightingAndObscurementContext
         "DLC3_Elven_Suspect_05_Guard_Traitor",
         "DLC3_Elven_06_Guard",
         "SRD_DLC3_Archmage",
-        "Generic_ShockArcanist"
+        "Generic_ShockArcanist",
+        "Sorr-Akkath*"
     ];
 
     private static string[] MonstersThatShouldHaveTrueSight { get; } =
@@ -387,7 +391,7 @@ internal static class LightingAndObscurementContext
         {
             return false;
         }
-
+        
         // if a proxy need to perceive from controller
         var finalSensor = sensor;
 
@@ -437,6 +441,22 @@ internal static class LightingAndObscurementContext
 
         var senseModesToPrevent = new List<SenseMode.Type>();
 
+        if (Main.Settings.OfficialObscurementRulesTweakMonsters)
+        {
+            if (MonstersThatShouldHaveBlindSight
+                .Where(m => Regex.IsMatch(sensorCharacter.Name, m, RegexOptions.IgnoreCase)).Any())
+                sensorCharacter.SenseModes.Add(new SenseMode(SenseMode.Type.Blindsight, 10, 1));
+            if (MonstersThatShouldHaveDarkvision
+                .Where(m => Regex.IsMatch(sensorCharacter.Name, m, RegexOptions.IgnoreCase)).Any())
+                sensorCharacter.SenseModes.Add(new SenseMode(SenseMode.Type.Darkvision, 60, 1));
+            if (MonstersThatShouldHaveTrueSight
+                .Where(m => Regex.IsMatch(sensorCharacter.Name, m, RegexOptions.IgnoreCase)).Any())
+                sensorCharacter.SenseModes.Add(new SenseMode(SenseMode.Type.Truesight, 60, 1));
+            if (MonstersThatShouldNotHaveTremorSense
+                .Where(m => Regex.IsMatch(sensorCharacter.Name, m, RegexOptions.IgnoreCase)).Any())
+                sensorCharacter.SenseModes.Add(new SenseMode(SenseMode.Type.Tremorsense, 60, 1));            
+        }
+
         if (target != null)
         {
             foreach (var modifier in target.RulesetActor.GetSubFeaturesByType<IPreventEnemySenseMode>())
@@ -457,7 +477,7 @@ internal static class LightingAndObscurementContext
 
             var senseType = senseMode.SenseType;
 
-            // UNLIT
+            // UNLIT 
             if (targetLightingState is LightingState.Unlit && senseType is SenseMode.Type.NormalVision)
             {
                 continue;
@@ -522,9 +542,50 @@ internal static class LightingAndObscurementContext
                 continue;
             }
 
+            //consider this a successful perception roll as the sensor has skills to perceive
+            if (!Global.RolledPerceptionThisTurn.ContainsKey(sensor))
+                Global.RolledPerceptionThisTurn.Add(sensor
+                    , new Dictionary<GameLocationCharacter, RuleDefinitions.RollOutcome>());
+
+            if (!Global.RolledPerceptionThisTurn[sensor].ContainsKey(target))
+                Global.RolledPerceptionThisTurn[sensor].Add(target, RuleDefinitions.RollOutcome.Success);
             // Silhouette Step is the only one using additionalBlockedLightingState as it requires to block BRIGHT
             return additionalBlockedLightingState == LightingState.Darkness ||
                    targetLightingState != additionalBlockedLightingState;
+        }
+
+        if (distance < 11
+            && Main.Settings.EnableChanceToPerceiveCloseRange
+            && !targetIsInvisible
+            && !sourceIsBlindFromDarkness)
+        {
+            var sensorAllowedToRoll = false;
+            RuleDefinitions.AdvantageType advantage = RuleDefinitions.AdvantageType.None;
+            if (targetLightingState is LightingState.Darkness
+                || targetLightingState is (LightingState)MyLightingState.HeavilyObscured
+                || sourceIsBlindNotFromDarkness) advantage = RuleDefinitions.AdvantageType.Disadvantage;
+
+            if (!Global.RolledPerceptionThisTurn.ContainsKey(sensor)) sensorAllowedToRoll = true;
+            else if (!Global.RolledPerceptionThisTurn[sensor].ContainsKey(target)) sensorAllowedToRoll = true;
+
+            if (sensorAllowedToRoll)
+            {
+                RuleDefinitions.RollOutcome sensorOutcome = RuleDefinitions.RollOutcome.Neutral;
+                int baseBonus, checkRoll, firstRoll, secondRoll, successDelta;                
+                sensor.RollAbilityCheck("Wisdom", "Perception",(int)distance+10, advantage,new ActionModifier(),false,0, out baseBonus, out checkRoll, out firstRoll, out secondRoll, out sensorOutcome, out successDelta, true);
+                if (sensorOutcome != 0)
+                    if (!Global.RolledPerceptionThisTurn.ContainsKey(sensor))
+                        Global.RolledPerceptionThisTurn.Add(sensor
+                            , new Dictionary<GameLocationCharacter, RuleDefinitions.RollOutcome>());
+                if (!Global.RolledPerceptionThisTurn[sensor].ContainsKey(target))
+                    Global.RolledPerceptionThisTurn[sensor].Add(target, sensorOutcome);
+            }
+
+            if (Global.RolledPerceptionThisTurn.ContainsKey(sensor) 
+                && Global.RolledPerceptionThisTurn[sensor].ContainsKey(target)
+                && Global.RolledPerceptionThisTurn[sensor][target] == RuleDefinitions.RollOutcome.Success)
+                return additionalBlockedLightingState == LightingState.Darkness ||
+                    targetLightingState != additionalBlockedLightingState;
         }
 
         return false;
@@ -1076,10 +1137,10 @@ internal static class LightingAndObscurementContext
         foreach (var monster in DatabaseRepository.GetDatabase<MonsterDefinition>())
         {
             var name = monster.Name;
-
+            
             if (Main.Settings.OfficialObscurementRulesTweakMonsters)
             {
-                if (MonstersThatShouldHaveDarkvision.Contains(name))
+                if (MonstersThatShouldHaveDarkvision.Where(m => Regex.IsMatch(name, m, RegexOptions.IgnoreCase)).Any())
                 {
                     monster.Features.TryAdd(SenseDarkvision);
                 }

@@ -121,6 +121,8 @@ public class Settings : UnityModManager.ModSettings
     public bool EnableInitiativeRollOnEveryRoundStart { get; set; }
     [Tag(Type = TagType.T2014)] public bool BlindedConditionDontAllowAttackOfOpportunity { get; set; }
     [Tag(Type = TagType.T2014)] public bool UseOfficialLightingObscurementAndVisionRules { get; set; }
+    [Tag(Type = TagType.T2014)] public bool EnableShotInDarknessPenalties { get; set; }
+    [Tag(Type = TagType.T2014)] public bool EnableChanceToPerceiveCloseRange { get; set; }
     [Tag(Type = TagType.T2014)] public bool OfficialObscurementRulesInvisibleCreaturesCanBeTarget { get; set; }
     [Tag(Type = TagType.T2014)] public bool OfficialObscurementRulesCancelAdvDisPairs { get; set; }
     public bool OfficialObscurementRulesHeavilyObscuredAsProjectileBlocker { get; set; }
@@ -470,6 +472,7 @@ public class Settings : UnityModManager.ModSettings
     [Tag(Type = TagType.T2024)] public bool EnableOneDndSpiderClimbSpell { get; set; }
     [Tag(Type = TagType.T2024)] public bool EnableOneDndStoneSkinSpell { get; set; }
     [Tag(Type = TagType.T2024)] public bool EnableOneDndTrueStrikeCantrip { get; set; }
+    public bool SwapShineCantrip { get; set; }
     public bool AllowHasteCasting { get; set; }
     public bool AllowStackedMaterialComponent { get; set; }
     public bool EnableRelearnSpells { get; set; }

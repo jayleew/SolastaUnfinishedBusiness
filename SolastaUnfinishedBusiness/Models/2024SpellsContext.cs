@@ -23,6 +23,23 @@ namespace SolastaUnfinishedBusiness.Models;
 
 internal static partial class Tabletop2024Context
 {
+    private static void HomeBrewSomeSpells()
+    {
+        //    .SetSavingThrowData(true, AttributeDefinitions.Wisdom, true,
+        //EffectDifficultyClassComputation.SpellCastingFeature, "Wisdom", 15)
+        Shine.EffectDescription.DifficultyClassComputation = EffectDifficultyClassComputation.FixedValue;
+        Shine.EffectDescription.FixedSavingThrowDifficultyClass = 15;        
+        
+
+        //not to brew
+            //Barkskin.requiresConcentration = true;
+            //Barkskin.castingTime = ActivationTime.Action;
+            //AttributeModifierBarkskin.modifierValue = 16;
+            //Barkskin.GuiPresentation.description = "Spell/&BarkskinDescription";
+            //ConditionBarkskin.GuiPresentation.description = "Rules/&ConditionBarkskinDescription";
+
+    }
+
     private static readonly List<(string, string)> GuidanceProficiencyPairs =
     [
         (AttributeDefinitions.Dexterity, SkillDefinitions.Acrobatics),

@@ -195,6 +195,7 @@ internal static partial class Tabletop2024Context
         SwitchWizardSchoolOfMagicLearningLevel();
         SwitchWeaponMastery();
         SwitchMartialChampion();
+        HomeBrewSomeSpells();
     }
 
     internal static void SwitchSurprisedEnforceDisadvantage()

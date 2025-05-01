@@ -549,6 +549,7 @@ public static class GameLocationBattleManagerPatcher
 
             //PATCH: add modifier or advantage/disadvantage for physical and spell attack
             ApplyCustomModifiers(attackParams);
+            
         }
 
         private static void ApplyCustomModifiers(BattleDefinitions.AttackEvaluationParams attackParams)
@@ -570,6 +571,27 @@ public static class GameLocationBattleManagerPatcher
                     attackParams.attackMode,
                     attackParams.effectName,
                     ref attackParams.attackModifier);
+            }
+
+            //if the attacker cannot perceive the target, ranged attacks should be more than disadvantaged, but lucky hits or not at all
+            if (Global.RolledPerceptionThisTurn.ContainsKey(attackParams.attacker) 
+                && Global.RolledPerceptionThisTurn[attackParams.attacker].ContainsKey(attackParams.defender)
+                && Global.RolledPerceptionThisTurn[attackParams.attacker][attackParams.defender] == RollOutcome.Success) //then this attacker can perceive
+            {
+                
+            }
+            else //if this is ranged or thrown, it is next to impossible
+            {
+                if (Main.Settings.EnableShotInDarknessPenalties && (attackParams.attackMode.Ranged || attackParams.attackMode.Thrown))
+                {
+                    int actualDistance = (int)int3.Distance(attackParams.attackPosition, attackParams.defensePosition);
+                    
+                    if (actualDistance <= 10) //then allow other modifiers
+                        attackParams.attackModifier.AttackRollModifier -= actualDistance;
+                    else//this is virtually impossible to hit.
+                        attackParams.attackModifier.AttackRollModifier = -actualDistance;
+                }
+                    
             }
         }
     }

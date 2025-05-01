@@ -25,7 +25,7 @@ internal static class SpellsDisplay
         }
 
         UI.Label();
-
+        
         toggle = Main.Settings.AllowBladeCantripsToUseReach;
         if (UI.Toggle(Gui.Localize("ModUi/&AllowBladeCantripsToUseReach"), ref toggle, UI.AutoWidth()))
         {
@@ -267,6 +267,12 @@ internal static class SpellsDisplay
         if (UI.Toggle(Gui.Localize("ModUi/&EnableRelearnSpells"), ref toggle, UI.AutoWidth()))
         {
             Main.Settings.EnableRelearnSpells = toggle;
+        }
+
+        toggle = Main.Settings.SwapShineCantrip;
+        if (UI.Toggle(Gui.Localize("ModUI/&SwapShineCantrip"), ref toggle, UI.AutoWidth()))
+        {
+            Main.Settings.SwapShineCantrip = toggle;
         }
     }
 

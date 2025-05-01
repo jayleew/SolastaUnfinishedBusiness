@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection.Emit;
 using HarmonyLib;
 using JetBrains.Annotations;
+using NAudio.MediaFoundation;
 using SolastaUnfinishedBusiness.Api;
 using SolastaUnfinishedBusiness.Api.GameExtensions;
 using SolastaUnfinishedBusiness.Api.Helpers;
@@ -154,8 +155,14 @@ public static class CharacterActionPatcher
                 case CharacterActionMove:
                     if (actingCharacter.Stealthy && Main.Settings.StealthBreaksWhenMoving)
                     {
-                        var a = new ActionModifier();
-                        ComputeStealthBreakMovement(actingCharacter, Main.Settings.StealthRollForBreak, new ActionModifier());
+                        try
+                        {
+                            ComputeStealthBreakMovement(actingCharacter, Main.Settings.StealthRollForBreak, new ActionModifier());
+                        }
+                        catch (Exception ex)
+                        {
+                            //if we couldn't calculate stealth break, it probably isn't a hero, so nothing special
+                        }
                     }
                     break;
                 case CharacterActionFreeFall:
@@ -477,8 +484,18 @@ public static class CharacterActionPatcher
 
                     RuleDefinitions.RollOutcome outcome2 = RuleDefinitions.RollOutcome.Success;
                     int successDelta2 = 0;
+
+                    AdvantageType actorAdvantage = AdvantageType.None;
                     //character with stealthy feat has advantage
-                    AdvantageType actorAdvantage = __instance.RulesetCharacter.GetOriginalHero().TrainedFeats.Contains(OtherFeats.FeatStealthy) ? AdvantageType.Advantage : AdvantageType.None;
+                    if (__instance.RulesetCharacter != null)
+                    {
+                        var hero = __instance.RulesetCharacter.GetOriginalHero();
+                        if (hero != null && hero.TrainedFeats != null && hero.trainedFeats.Contains(OtherFeats.FeatStealthy))
+                        {
+                            actorAdvantage = AdvantageType.Advantage;
+                        }
+                    }
+                  
                     __instance.RollAbilityCheck("Dexterity", "Stealth", num, actorAdvantage, actionModifier, passive: false, -1, out outcome2, out successDelta2, rollDie: true);
                     if (outcome2 != 0 && outcome2 != RuleDefinitions.RollOutcome.Success)
                     {

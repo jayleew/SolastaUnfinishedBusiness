@@ -1,3 +1,11 @@
+1.5.97.49:
+- changed Shine to be effective (DC 15 fixed save)
+- added Sorr-Akkath to have darkvision 
+- added a chance to perceive characters that are < 11 distance
+- added ranged and throw for non-perceived targets to be literally a shot in the dark, especially > 10 distance
+- added zipping the mod on realease install build.
+- fixed monsters to have the right vision when it comes to UB light and obscurement rules
+
 1.5.97.46:
 
 - added Domain Order subclass
