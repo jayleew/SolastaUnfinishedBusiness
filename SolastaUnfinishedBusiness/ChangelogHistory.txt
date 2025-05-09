@@ -1,3 +1,7 @@
+1.5.97.52:
+- added option to modify jumping rules for encumberance and armor category
+- added option to modify throwing rules for range vs strength
+
 1.5.97.51:
 - added Deadly weapon mastery (From Pathfinder)
 - updated Longbow and LongMace types with deadly for alternate weapon mastery properties
