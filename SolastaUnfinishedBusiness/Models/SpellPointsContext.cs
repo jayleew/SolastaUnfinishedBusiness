@@ -48,7 +48,7 @@ internal static class SpellPointsContext
                 SpellPointsOneThirdCastingSlots)
         ];
 
-    private static readonly FeatureDefinitionPower PowerSpellPoints = FeatureDefinitionPowerBuilder
+    internal static readonly FeatureDefinitionPower PowerSpellPoints = FeatureDefinitionPowerBuilder
         .Create("PowerSpellPoints")
         .SetGuiPresentationNoContent(true)
         .SetUsesFixed(ActivationTime.NoCost, RechargeRate.LongRest, 1, 0)
